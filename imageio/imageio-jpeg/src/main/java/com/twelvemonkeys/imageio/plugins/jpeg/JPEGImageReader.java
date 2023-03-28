@@ -62,6 +62,7 @@ import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.color.ICC_Profile;
+import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 import java.io.*;
 import java.util.List;
@@ -134,6 +135,9 @@ public final class JPEGImageReader extends ImageReaderBase {
     private int currentStreamIndex = 0;
     private List<Long> streamOffsets = new ArrayList<>();
 
+    private int exifOrientation = 1;
+    private boolean exifDimSwap = false;
+
     protected JPEGImageReader(final ImageReaderSpi provider, final ImageReader delegate) {
         super(provider);
 
@@ -203,18 +207,26 @@ public final class JPEGImageReader extends ImageReaderBase {
 
     @Override
     public int getWidth(int imageIndex) throws IOException {
+        return getWidth(imageIndex, false);
+    }
+
+    public int getWidth(int imageIndex, boolean ignoreExifOrientation) throws IOException {
         checkBounds(imageIndex);
         initHeader(imageIndex);
 
-        return getSOF().samplesPerLine;
+        return ignoreExifOrientation || !exifDimSwap ? getSOF().samplesPerLine : getSOF().lines;
     }
 
     @Override
     public int getHeight(int imageIndex) throws IOException {
+        return getHeight(imageIndex, false);
+    }
+
+    public int getHeight(int imageIndex, boolean ignoreExifOrientation) throws IOException {
         checkBounds(imageIndex);
         initHeader(imageIndex);
 
-        return getSOF().lines;
+        return ignoreExifOrientation || !exifDimSwap ? getSOF().lines : getSOF().samplesPerLine;
     }
 
     @Override
@@ -326,6 +338,72 @@ public final class JPEGImageReader extends ImageReaderBase {
 
     @Override
     public BufferedImage read(int imageIndex, ImageReadParam param) throws IOException {
+        return rotateIfNecessary(readImage(imageIndex, param));
+    }
+
+    private BufferedImage rotateIfNecessary(BufferedImage bufferedImage) {
+        if (exifOrientation > 1) {
+
+            // create the transformation matrix for the desired rotation
+            AffineTransform transform = new AffineTransform();
+            BufferedImage originalImage = bufferedImage;
+            int width = originalImage.getWidth();
+            int height = originalImage.getHeight();
+
+            switch (exifOrientation) {
+                //case 1: // top left - no rotation
+                //    break;
+                case 2: // top right - flip horizontally
+                    transform.scale(-1, 1);
+                    transform.translate(-width, 0);
+                    break;
+                case 3: // bottom right - rotate 180 degrees
+                    transform.rotate(Math.PI, width / 2.0, height / 2.0);
+                    break;
+                case 4: // bottom left - flip vertically
+                    transform.scale(1, -1);
+                    transform.translate(0, -height);
+                    break;
+                case 5: // left top - flip horizontally and rotate 270 degrees
+                    transform.rotate(Math.toRadians(270), 0, height);
+                    transform.scale(-1, 1);
+                    transform.translate(-height, height);
+                    width = originalImage.getHeight();
+                    height = originalImage.getWidth();
+                    break;
+                case 6: // right top - rotate 90 degrees
+                    transform.rotate(Math.toRadians(90), 0, 0);
+                    transform.translate(0, -height);
+                    width = originalImage.getHeight();
+                    height = originalImage.getWidth();
+                    break;
+                case 7: // right bottom - flip horizontally and rotate -90 degrees
+                    transform.scale(-1, 1);
+                    transform.rotate(Math.toRadians(-90), 0, 0);
+                    transform.translate(-width, -height);
+                    width = originalImage.getHeight();
+                    height = originalImage.getWidth();
+                    break;
+                case 8: // left bottom - rotate -90 degrees
+                    transform.rotate(Math.toRadians(-90), 0, 0);
+                    transform.translate(-width, 0);
+                    width = originalImage.getHeight();
+                    height = originalImage.getWidth();
+                    break;
+            }
+
+            // create a new BufferedImage (with rotated dimensions if needed)
+            BufferedImage rotatedImage = new BufferedImage(width, height, originalImage.getType());
+
+            // apply the transformation matrix to the original image using AffineTransformOp
+            AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+            op.filter(originalImage, rotatedImage);
+            bufferedImage = rotatedImage;
+        }
+        return bufferedImage;
+    }
+    
+    private BufferedImage readImage(int imageIndex, ImageReadParam param) throws IOException {
         checkBounds(imageIndex);
         initHeader(imageIndex);
 
@@ -397,8 +475,8 @@ public final class JPEGImageReader extends ImageReaderBase {
     }
 
     private BufferedImage readImageAsRasterAndReplaceColorProfile(int imageIndex, ImageReadParam param, Frame startOfFrame, JPEGColorSpace csType, ICC_Profile profile) throws IOException {
-        int origWidth = getWidth(imageIndex);
-        int origHeight = getHeight(imageIndex);
+        int origWidth = getWidth(imageIndex, true);
+        int origHeight = getHeight(imageIndex, true);
 
         Iterator<ImageTypeSpecifier> imageTypes = getImageTypes(imageIndex);
         // TODO: Avoid creating destination here, if possible (as it saves time and memory)
@@ -708,9 +786,30 @@ public final class JPEGImageReader extends ImageReaderBase {
 
             this.segments = segments;
 
+            readExifOrientation();
+
             if (DEBUG) {
                 System.out.println("segments: " + segments);
                 System.out.println("Read metadata in " + (System.currentTimeMillis() - start) + " ms");
+            }
+        }
+    }
+
+    private void readExifOrientation() throws IOException {
+        EXIF exif = getExif();
+        if (exif != null) {
+            CompoundDirectory dict = parseExif(exif);
+            
+            if (dict != null) {
+                Iterator<Entry> iterator = dict.iterator();
+                while(iterator.hasNext()) {
+                    Entry entry = iterator.next();
+                    if (entry.getIdentifier().equals(TIFF.TAG_ORIENTATION)) {
+                        exifOrientation = ((Integer)entry.getValue()).intValue();
+                        exifDimSwap = exifOrientation == 5 || exifOrientation == 6 || exifOrientation == 7 || exifOrientation == 8;
+                        break;
+                    }
+                }
             }
         }
     }
