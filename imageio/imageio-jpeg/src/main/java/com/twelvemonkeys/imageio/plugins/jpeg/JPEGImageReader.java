@@ -112,6 +112,7 @@ public final class JPEGImageReader extends ImageReaderBase {
     // TODO: As we already parse the SOF segments, maybe we should stop delegating getWidth/getHeight etc?
 
     final static boolean DEBUG = "true".equalsIgnoreCase(System.getProperty("com.twelvemonkeys.imageio.plugins.jpeg.debug"));
+    static final boolean ORIENTATION_HANDLING_DISABLED = Boolean.getBoolean("com.twelvemonkeys.imageio.plugins.jpeg.disableExifOrientationHandling");
 
     /** Internal constant for referring all APP segments */
     static final int ALL_APP_MARKERS = -1;
@@ -212,11 +213,11 @@ public final class JPEGImageReader extends ImageReaderBase {
         return getWidth(imageIndex, false);
     }
 
-    public int getWidth(int imageIndex, boolean ignoreExifOrientation) throws IOException {
+    private int getWidth(int imageIndex, boolean ignoreExifOrientation) throws IOException {
         checkBounds(imageIndex);
         initHeader(imageIndex);
 
-        return ignoreExifOrientation || !exifDimSwap ? getSOF().samplesPerLine : getSOF().lines;
+        return ORIENTATION_HANDLING_DISABLED || ignoreExifOrientation || !exifDimSwap ? getSOF().samplesPerLine : getSOF().lines;
     }
 
     @Override
@@ -224,11 +225,11 @@ public final class JPEGImageReader extends ImageReaderBase {
         return getHeight(imageIndex, false);
     }
 
-    public int getHeight(int imageIndex, boolean ignoreExifOrientation) throws IOException {
+    private int getHeight(int imageIndex, boolean ignoreExifOrientation) throws IOException {
         checkBounds(imageIndex);
         initHeader(imageIndex);
 
-        return ignoreExifOrientation || !exifDimSwap ? getSOF().lines : getSOF().samplesPerLine;
+        return ORIENTATION_HANDLING_DISABLED || ignoreExifOrientation || !exifDimSwap ? getSOF().lines : getSOF().samplesPerLine;
     }
 
     @Override
@@ -472,7 +473,7 @@ public final class JPEGImageReader extends ImageReaderBase {
 
         // If the user has specified a source region and an Exif orientation value is set, we assume that the user has specified a source region that refers to the rotated image.
         // In this case, we need to recalculate the source region to get the correct region with respect to the original (unrotated) image, since we are working with the original image dimensions from that point on.
-        final Rectangle sourceRegion = param.getSourceRegion();
+        final Rectangle sourceRegion = param == null ? null : param.getSourceRegion();
         final Rectangle transformedSourceRegion = getTransformedSourceRegion(sourceRegion);
         if (transformedSourceRegion != null) {
             param.setSourceRegion(transformedSourceRegion);
