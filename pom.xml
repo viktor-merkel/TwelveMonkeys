@@ -13,12 +13,12 @@
     <packaging>pom</packaging>
     <name>Twelvemonkeys</name>
 
-    <url>https://github.com/haraldk/TwelveMonkeys</url>
+    <url>https://github.com/viktor-merkel/TwelveMonkeys</url>
 
     <licenses>
         <license>
             <name>The BSD License</name>
-            <url>https://github.com/haraldk/TwelveMonkeys#license</url>
+            <url>https://github.com/viktor-merkel/TwelveMonkeys#license</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -79,15 +79,22 @@
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/haraldk/TwelveMonkeys/issues</url>
+        <url>https://github.com/viktor-merkel/TwelveMonkeys/issues</url>
     </issueManagement>
 
     <scm>
-        <connection>scm:git:https://github.com/haraldk/TwelveMonkeys</connection>
-        <developerConnection>scm:git:ssh://git@github.com/haraldk/TwelveMonkeys</developerConnection>
-        <url>https://github.com/haraldk/TwelveMonkeys</url>
+        <connection>scm:git:https://github.com/viktor-merkel/TwelveMonkeys</connection>
+        <developerConnection>scm:git:ssh://git@github.com/viktor-merkel/TwelveMonkeys</developerConnection>
+        <url>https://github.com/viktor-merkel/TwelveMonkeys</url>
         <tag>twelvemonkeys-3.4</tag>
     </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>hydmedia-thirdparty</id>
+            <url>https://repo-nexus-rot.orbis.dedalus.com/nexus/repository/thirdparty/</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
