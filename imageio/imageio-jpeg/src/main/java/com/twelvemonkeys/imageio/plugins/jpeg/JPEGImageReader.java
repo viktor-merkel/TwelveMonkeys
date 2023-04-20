@@ -216,7 +216,8 @@ public final class JPEGImageReader extends ImageReaderBase {
         checkBounds(imageIndex);
         initHeader(imageIndex);
 
-        return ORIENTATION_HANDLING_DISABLED || ignoreExifOrientation || !exifDimSwap ? getSOF().samplesPerLine : getSOF().lines;
+        final Frame sof = getSOF();
+        return ORIENTATION_HANDLING_DISABLED || ignoreExifOrientation || !exifDimSwap ? sof.samplesPerLine : sof.lines;
     }
 
     @Override
@@ -228,7 +229,8 @@ public final class JPEGImageReader extends ImageReaderBase {
         checkBounds(imageIndex);
         initHeader(imageIndex);
 
-        return ORIENTATION_HANDLING_DISABLED || ignoreExifOrientation || !exifDimSwap ? getSOF().lines : getSOF().samplesPerLine;
+        final Frame sof = getSOF();
+        return ORIENTATION_HANDLING_DISABLED || ignoreExifOrientation || !exifDimSwap ? sof.lines : sof.samplesPerLine;
     }
 
     @Override
@@ -865,19 +867,15 @@ public final class JPEGImageReader extends ImageReaderBase {
     }
 
     private void readExifOrientation() throws IOException {
-        EXIF exif = getExif();
-        if (exif != null) {
-            CompoundDirectory dict = parseExif(exif);
-            
-            if (dict != null) {
-                Iterator<Entry> iterator = dict.iterator();
-                while(iterator.hasNext()) {
-                    Entry entry = iterator.next();
-                    if (entry.getIdentifier().equals(TIFF.TAG_ORIENTATION)) {
-                        exifOrientation = ((Integer)entry.getValue()).intValue();
-                        exifDimSwap = exifOrientation == 5 || exifOrientation == 6 || exifOrientation == 7 || exifOrientation == 8;
-                        break;
-                    }
+        CompoundDirectory dict = getExif();           
+        if (dict != null) {
+            Iterator<Entry> iterator = dict.iterator();
+            while(iterator.hasNext()) {
+                Entry entry = iterator.next();
+                if (entry.getIdentifier().equals(TIFF.TAG_ORIENTATION)) {
+                    exifOrientation = ((Integer)entry.getValue()).intValue();
+                    exifDimSwap = exifOrientation == 5 || exifOrientation == 6 || exifOrientation == 7 || exifOrientation == 8;
+                    break;
                 }
             }
         }

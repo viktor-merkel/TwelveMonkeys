@@ -462,7 +462,8 @@ public class JPEGImageReaderTest extends ImageReaderAbstractTest<JPEGImageReader
             for (int i = 0; i < expectedOrientations.size(); i++) {
                 String expOrientation = expectedOrientations.get(i);
                 String imgName = String.format("/exif-small/exif_orientation_%s.jpg", i);
-                try (ImageInputStream stream = ImageIO.createImageInputStream(getClassLoaderResource(imgName))) {
+                
+                try (ImageInputStream stream = ImageIO.createImageInputStream(getClass().getResource(imgName))) {
                     reader.setInput(stream);
                     int w = reader.getWidth(0);
                     int h = reader.getHeight(0);
