@@ -83,10 +83,9 @@
     </issueManagement>
 
     <scm>
-        <connection>scm:git:https://github.com/viktor-merkel/TwelveMonkeys</connection>
-        <developerConnection>scm:git:ssh://git@github.com/viktor-merkel/TwelveMonkeys</developerConnection>
+        <connection>scm:git:https://github.com/viktor-merkel/TwelveMonkeys.git</connection>
+        <developerConnection>scm:git:https://github.com/viktor-merkel/TwelveMonkeys.git</developerConnection>
         <url>https://github.com/viktor-merkel/TwelveMonkeys</url>
-        <tag>twelvemonkeys-3.4</tag>
     </scm>
 
     <distributionManagement>
