@@ -9,7 +9,7 @@
 
     <groupId>com.twelvemonkeys</groupId>
     <artifactId>twelvemonkeys</artifactId>
-    <version>3.4.4-dm-01-SNAPSHOT</version>
+    <version>3.4.4-dm-01</version>
     <packaging>pom</packaging>
     <name>Twelvemonkeys</name>
 
@@ -86,7 +86,8 @@
         <connection>scm:git:https://github.com/viktor-merkel/TwelveMonkeys.git</connection>
         <developerConnection>scm:git:https://github.com/viktor-merkel/TwelveMonkeys.git</developerConnection>
         <url>https://github.com/viktor-merkel/TwelveMonkeys</url>
-    </scm>
+      <tag>twelvemonkeys-3.4.4-dm-01</tag>
+  </scm>
 
     <distributionManagement>
         <repository>
