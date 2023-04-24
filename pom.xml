@@ -9,7 +9,7 @@
 
     <groupId>com.twelvemonkeys</groupId>
     <artifactId>twelvemonkeys</artifactId>
-    <version>3.4.4-dm-SNAPSHOT</version>
+    <version>3.4.4-dm-01-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Twelvemonkeys</name>
 
