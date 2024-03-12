@@ -873,7 +873,15 @@ public final class JPEGImageReader extends ImageReaderBase {
             while(iterator.hasNext()) {
                 Entry entry = iterator.next();
                 if (entry.getIdentifier().equals(TIFF.TAG_ORIENTATION)) {
-                    exifOrientation = ((Integer)entry.getValue()).intValue();
+                    Object entryValue = entry.getValue();
+                    if (entryValue instanceof Integer) {
+                        exifOrientation = ((Integer)entry.getValue()).intValue();
+                    } else if (entryValue instanceof Long) {
+                        exifOrientation = ((Long)entry.getValue()).intValue();
+                    } else {
+                        throw new UnsupportedOperationException("Unsupported class of entry value: " + entryValue.getClass().getName());
+                    }
+
                     exifDimSwap = exifOrientation == 5 || exifOrientation == 6 || exifOrientation == 7 || exifOrientation == 8;
                     break;
                 }
